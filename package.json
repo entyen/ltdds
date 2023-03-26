@@ -1,0 +1,32 @@
+{
+  "name": "ltdds",
+  "version": "1.0.0",
+  "description": "Discord Helper Bot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/entyen/ltdds.git"
+  },
+  "keywords": [
+    "discord",
+    "bot"
+  ],
+  "author": "Entyen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/entyen/ltdds/issues"
+  },
+  "homepage": "https://github.com/entyen/ltdds#readme",
+  "dependencies": {
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3",
+    "mongoose": "^7.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.21"
+  }
+}
