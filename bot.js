@@ -262,16 +262,17 @@ const {
     })
   })
   
-  bot.on("interactionCreate", async (interaction) => {
-    if (!interaction.isCommand()) return
-    const cmd = interaction.commandName
-    const opt = interaction.options
-    const nickName = interaction.guild.members.cache.get(interaction.user.id)
+  bot.on("interactionCreate", async (inter) => {
+    if (!inter.isCommand()) return
+    const cmd = inter.commandName
+    const opt = inter.options
+    const nickName = inter.guild.members.cache.get(inter.user.id)
+    const iUser = userdb.findOne({ discordID: inter.user.id })
     if (cmd === "кадр") {
       //if (!user && user.access < 5) return
       let action = opt.getString("action")
       let actionRu = action === "invite" ? "принял" : "уволил"
-      const user = interaction.guild.members.cache.get(opt.getUser("user").id)
+      const user = inter.guild.members.cache.get(opt.getUser("user").id)
       const embed = new EmbedBuilder()
         .setTitle("Кадровое дело")
         .setDescription(
@@ -299,13 +300,13 @@ const {
           await user.roles.add("1083871221759877171")
         } catch (error) {
           if (error.code === 11000) {
-            await interaction.reply({
+            await inter.reply({
               content: "Пользователь не был корректно уволен, обратитесь к начальству!",
               ephemeral: true,
             })
           } else {
             console.log(error)
-            await interaction.reply({
+            await inter.reply({
               content: `Произошла ошибка \n\`${error.message}\``,
               ephemeral: true,
             })
@@ -324,7 +325,7 @@ const {
         await user.roles.add("1083769716977455134")
       }
   
-      await interaction.reply({
+      await inter.reply({
         embeds: [embed],
       })
     }
@@ -333,7 +334,7 @@ const {
       let actionRu =
         action === "up" ? "повысил" : action === "down" ? "понизил" : "перевел"
       let position = opt.getRole("role")
-      const user = interaction.guild.members.cache.get(opt.getUser("user").id)
+      const user = inter.guild.members.cache.get(opt.getUser("user").id)
       const embed = new EmbedBuilder()
         .setTitle("Аудит")
         .setDescription(
@@ -357,19 +358,19 @@ const {
       const pos = []
       nickName._roles.forEach((role) => {
         pos.push(
-          bot.guilds.cache.get(interaction.guild.id).roles.cache.get(role)
+          bot.guilds.cache.get(inter.guild.id).roles.cache.get(role)
             .rawPosition
         )
       })
       pos.sort((a, b) => b - a)
       if (pos[0] <= position.rawPosition && pos[0] >= 9) {
-        await interaction.reply({
+        await inter.reply({
           content: "Нельзя повысить выше своей должности",
           ephemeral: true,
         })
         return
       }
-      await interaction.reply({
+      await inter.reply({
         embeds: [embed],
       })
     }
@@ -377,7 +378,7 @@ const {
         let action = opt.getString("name")
         let actionRu =
           action === "One" ? "Benefactor ASG P-One" : action === "6x6" ? "Benefactor G63 ASG 6x6" : "Ubermacht W2 G87"
-        const user = interaction.guild.members.cache.get(opt.getUser("user").id)
+        const user = inter.guild.members.cache.get(opt.getUser("user").id)
         var chas = "час"
         switch (opt.getNumber("time")) {
           case 1: case 21: case 31: case 41: case 51: case 61: case 71: case 81: case 91:
@@ -411,7 +412,7 @@ const {
                 : "https://media.discordapp.net/attachments/994556652621664356/1121376078263488532/attachment.png"
             }`
           )
-      await interaction.reply({
+      await inter.reply({
         embeds: [embed],
       })    
     }
@@ -450,7 +451,7 @@ const {
                 : "https://media.discordapp.net/attachments/1043074634586783744/1120061828379189399/3.png"
             }`
           )   
-      await interaction.reply({
+      await inter.reply({
         embeds: [embed],
       })
     } 
@@ -459,7 +460,7 @@ const {
       let actionRu =
           action === "S5" ? "добавил скидку 5%" : action === "S10" ? "добавил скидку 10%" : action === "S20" ? "добавил скидку 20%" : action === "S30" ? "добавил скидку 30%"
           : action === "S40" ? "добавил скидку 40%" : action === "S50" ? "добавил скидку 50%" : "удалил все скидки"
-      const user = interaction.guild.members.cache.get(opt.getUser("user").id)
+      const user = inter.guild.members.cache.get(opt.getUser("user").id)
       const embed = new EmbedBuilder()
         .setTitle("Отчет по скидке")
         .setDescription(`Пользователь ${nickName}\n **${actionRu}**\n пользователю ${user}\n Причина: **${opt.getString("why")}** \n Доказательства: *${opt.getString("doc")}*`)
@@ -544,12 +545,12 @@ const {
             await user.roles.remove("1121681479576080448")
             await user.roles.remove("1121681617929388114");
         }
-      await interaction.reply({
+      await inter.reply({
         embeds: [embed],
       })
     }
     if (cmd === "инфо") {
-      const user = interaction.guild.members.cache.get(opt.getUser("user").id)
+      const user = inter.guild.members.cache.get(opt.getUser("user").id)
       const embed = new EmbedBuilder()
         .setTitle("Кадровое дело")
         .setDescription(
@@ -560,7 +561,7 @@ const {
         .setTimestamp(Date.now())
         .setColor(`${"91cb00"}`)
         .setImage(`${"https://media.discordapp.net/attachments/1070730397618552932/1084232740867686480/LTD.png"}`)
-        await interaction.reply({
+        await inter.reply({
         embeds: [embed],
       })
     }
