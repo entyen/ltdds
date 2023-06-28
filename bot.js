@@ -11,6 +11,7 @@ const {
     SlashCommandBuilder,
     EmbedBuilder,
     CommandInteractionOptionResolver,
+    Message,
   } = require("discord.js")
   const config = require("./config.json")
   
@@ -18,6 +19,8 @@ const {
   const mongoose = require("mongoose")
   const { user } = require("./schema")
   const userdb = mongoose.model("user", user)
+  const { state } = require("./schema1")
+  const userdb1 = mongoose.model("state", state)
   
   const bot = new Client({
     intents: [
@@ -248,6 +251,35 @@ const {
             .setRequired(true)
         )
       .setDefaultMemberPermissions(268435456),
+      new SlashCommandBuilder()
+        .setName("доступ")
+        .setDescription("Смена уровня доступа")
+        .addUserOption((option) =>
+          option
+            .setName("user")
+            .setDescription("Выберите пользователя")
+            .setRequired(true)
+        )
+        .addNumberOption((option) =>
+          option
+            .setName("dost")
+            .setDescription("Укажите уровень доступа:")
+            .setRequired(true)
+            .setMaxValue(9).setMinValue(0)
+        )
+        .addStringOption((option) =>
+          option
+            .setName("why")
+            .setDescription("Укажите причину:")
+            .setRequired(true)
+        )
+        .addStringOption((option) =>
+          option
+            .setName("doc")
+            .setDescription("Ссылка на доказательства:")
+            .setRequired(true)
+        )
+      .setDefaultMemberPermissions(268435456),
     ]
   
     bot.guilds.cache.forEach(async (guild) => {
@@ -267,9 +299,11 @@ const {
     const cmd = inter.commandName
     const opt = inter.options
     const nickName = inter.guild.members.cache.get(inter.user.id)
-    const iUser = userdb.findOne({ discordID: inter.user.id })
+    const iUser = await userdb.findOne({ discordID: inter.user.id })
+    const iState = await userdb1.findOne({ stateid: "777" })
+    //console.log(iUser)
     if (cmd === "кадр") {
-      //if (!user && user.access < 5) return
+      if (!iUser || iUser.access < 5) return await inter.reply({content: "Недостаточно прав!", ephemeral: true, })
       let action = opt.getString("action")
       let actionRu = action === "invite" ? "принял" : "уволил"
       const user = inter.guild.members.cache.get(opt.getUser("user").id)
@@ -330,6 +364,7 @@ const {
       })
     }
     if (cmd === "аудит") {
+      if (!iUser || iUser.access < 5) return await inter.reply({content: "Недостаточно прав!", ephemeral: true, })
       let action = opt.getString("action")
       let actionRu =
         action === "up" ? "повысил" : action === "down" ? "понизил" : "перевел"
@@ -375,7 +410,11 @@ const {
       })
     }
     if (cmd === "аренда") {
+      if (!iUser || iUser.access < 5) return await inter.reply({content: "Недостаточно прав!", ephemeral: true, })
         let action = opt.getString("name")
+        if (action === "One" && iState.state1 === 1) return await inter.reply({content: "Benefactor ASG P-One занят!", ephemeral: true, })
+        if (action === "6x6" && iState.state2 === 1) return await inter.reply({content: "Benefactor G63 ASG 6x6 занят!", ephemeral: true, })
+        if (action === "W2" && iState.state3 === 1) return await inter.reply({content: "Ubermacht W2 G87 занят!", ephemeral: true, })
         let actionRu =
           action === "One" ? "Benefactor ASG P-One" : action === "6x6" ? "Benefactor G63 ASG 6x6" : "Ubermacht W2 G87"
         const user = inter.guild.members.cache.get(opt.getUser("user").id)
@@ -412,11 +451,45 @@ const {
                 : "https://media.discordapp.net/attachments/994556652621664356/1121376078263488532/attachment.png"
             }`
           )
+      if (action === "One")
+      await userdb1.findOneAndUpdate({stateid: "777"}, { $set: {state1: 1}});
+      else if (action === "6x6")
+      await userdb1.findOneAndUpdate({stateid: "777"}, { $set: {state2: 1}});
+      else await userdb1.findOneAndUpdate({stateid: "777"}, { $set: {state3: 1}});
+      let istate1 =
+        iState.state1 === 0 ? "СВОБОДЕН" : "ЗАНЯТ"
+      let istate2 =
+        iState.state2 === 0 ? "СВОБОДЕН" : "ЗАНЯТ"
+      let istate3 =
+        iState.state3 === 0 ? "СВОБОДЕН" : "ЗАНЯТ"  
+      let em1 =
+        iState.state1 === 0 ? ":white_check_mark:" : ":no_entry:"
+      let em2 =
+        iState.state2 === 0 ? ":white_check_mark:" : ":no_entry:"
+      let em3 =
+        iState.state3 === 0 ? ":white_check_mark:" : ":no_entry:"
+      const embed1 = new EmbedBuilder()
+          .setTitle("Состояние аренды")
+          .setDescription(
+            `Состояние на текщий момент: \n
+            ${em1} Benefactor ASG P-One: **${istate1}** \n 
+            ${em2} Benefactor G63 ASG 6x6: **${istate2}** \n 
+            ${em3} Ubermacht W2 G87:  **${istate3}** `
+          )
+          .setTimestamp(Date.now())
+          .setColor(`${"00ff8a"}`)
+          .setImage(`${"https://media.discordapp.net/attachments/1043074634586783744/1120061828379189399/3.png"}`)
       await inter.reply({
         embeds: [embed],
       })    
+      const channel = await bot.channels.fetch("1123549218422931537");
+      await channel.bulkDelete(1)
+      await channel.send({
+        embeds: [embed1],
+      })
     }
     if (cmd === "инфоавто") {
+      if (!iUser || iUser.access < 0) return await inter.reply({content: "Недостаточно прав!", ephemeral: true, })
       let action = opt.getString("name")
       let actionRu =
           action === "One" ? "Benefactor ASG P-One" : action === "6x6" ? "Benefactor G63 ASG 6x6" : action === "W2" ? "Ubermacht W2 G87" : "На данный момент в аренде:"
@@ -456,6 +529,7 @@ const {
       })
     } 
     if (cmd === "скидка") {
+      if (!iUser || iUser.access < 6) return await inter.reply({content: "Недостаточно прав!", ephemeral: true, })
       let action = opt.getString("name")
       let actionRu =
           action === "S5" ? "добавил скидку 5%" : action === "S10" ? "добавил скидку 10%" : action === "S20" ? "добавил скидку 20%" : action === "S30" ? "добавил скидку 30%"
@@ -550,17 +624,46 @@ const {
       })
     }
     if (cmd === "инфо") {
+      if (!iUser || iUser.access < 5) return await inter.reply({content: "Недостаточно прав!", ephemeral: true, })
       const user = inter.guild.members.cache.get(opt.getUser("user").id)
+      const iUser1 = await userdb.findOne({ discordID: user.id })
+      if (!iUser1) return await inter.reply({content: "Пользователь не является сотрудником LTD!", ephemeral: true, })
       const embed = new EmbedBuilder()
         .setTitle("Кадровое дело")
         .setDescription(
           `Пользователь ${user}\n 
-          Паспорт: **${user.passport}**\n
-          Доступ: **${user.access}**`
+          Паспорт: **${iUser1.passport}**\n
+          Доступ: **${iUser1.access}**`
         )
         .setTimestamp(Date.now())
-        .setColor(`${"91cb00"}`)
-        .setImage(`${"https://media.discordapp.net/attachments/1070730397618552932/1084232740867686480/LTD.png"}`)
+        .setColor(`${"2929ff"}`)
+        .setImage(`${"https://media.discordapp.net/attachments/994556652621664356/1122030116298555402/images.png?width=247&height=73"}`)
+        await inter.reply({
+        embeds: [embed],
+      })
+    }
+    if (cmd === "доступ") {
+      if (!iUser || iUser.access < 6) return await inter.reply({content: "Недостаточно прав!", ephemeral: true, })
+      const user = inter.guild.members.cache.get(opt.getUser("user").id)
+      const iUser1 = await userdb.findOne({ discordID: user.id })
+      if (!iUser1) return await inter.reply({content: "Пользователь не является сотрудником LTD!", ephemeral: true, })
+      if (!iUser || iUser.access < 8 && iUser.discordID === iUser1.discordID) return await inter.reply({content: "Нельзя изменить собственный уровень доступа!", ephemeral: true, })
+      if (!iUser || iUser.access < 8 && iUser.access <= iUser1.access) return await inter.reply({content: "Нельзя изменить уровень доступа пользователю с тем же или большим уровнем доступа!", ephemeral: true, })
+      if (!iUser || iUser.access < 8 && iUser.access <= opt.getNumber("dost")) return await inter.reply({content: "Нельзя устанавливать уровень доступа равный или превышающий собственный!", ephemeral: true, })
+      const embed = new EmbedBuilder()
+        .setTitle("Изменение доступа")
+        .setDescription(
+          `Пользователь ${nickName} \n изменил уровень доступа пользователя: \n
+          Пользователь: ${user}\n 
+          Паспорт: **${iUser1.passport}**\n
+          Доступ: **${iUser1.access}** изменен на **${opt.getNumber("dost")}**\n
+          Причина: **${opt.getString("why")}**\n
+          Доказательства: *${opt.getString("doc")}*`
+        )
+        .setTimestamp(Date.now())
+        .setColor(`${"ff0000"}`)
+        .setImage(`${"https://media.discordapp.net/attachments/994556652621664356/1122050702043271200/images.png"}`)
+        await userdb.findOneAndUpdate({discordID: user.id}, { $set: {access: opt.getNumber("dost")}});
         await inter.reply({
         embeds: [embed],
       })
@@ -587,4 +690,3 @@ const {
     .catch((err) => {
       console.log("Failed to connect to MongoDB", err)
     })
-  
