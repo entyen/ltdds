@@ -13,7 +13,8 @@ const {
     CommandInteractionOptionResolver,
     Message,
   } = require("discord.js")
-  const config = require("./config.json")
+
+  require('dotenv').config()
   
   //database connection
   const mongoose = require("mongoose")
@@ -35,7 +36,7 @@ const {
     ],
   })
   
-  bot.login(config.TOKEN)
+  bot.login(process.env.BOT_TOKEN)
   
   bot.on("ready", async () => {
     console.log("Bot is ready!")
@@ -283,7 +284,7 @@ const {
     ]
   
     bot.guilds.cache.forEach(async (guild) => {
-      const rest = new REST({ version: "9" }).setToken(config.TOKEN)
+      const rest = new REST({ version: "9" }).setToken(process.env.BOT_TOKEN)
       try {
         await rest.put(Routes.applicationGuildCommands(bot.user.id, guild.id), {
           body: commands,
@@ -678,7 +679,7 @@ const {
   //DataBase
   mongoose
     .connect(
-      `mongodb://${config.DBUSER}:${config.DBPASS}@${config.SERVER}/${config.DB}`,
+      process.env.BASE_URI,
       {
         useNewUrlParser: true,
         useUnifiedTopology: true,
